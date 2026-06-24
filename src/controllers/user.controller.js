@@ -203,16 +203,16 @@ const refreshAccessToken = asyncHandler(async(req, res) => {
             secure: true
         }
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
-    
+        const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
+
         return res
         .status(200)
         .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
+        .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(
                 200,
-                {accessToken, refreshToken: newRefreshToken},
+                {accessToken, refreshToken},
                 "Access token refreshed"
             )
         )
@@ -237,17 +237,17 @@ const changeCurrentPassword = asyncHandler(async(req, res) => {
 })
 
 const getCurrentUser = asyncHandler(async(req, res) => {
-    return res.status(200).json(200, req.user, "Current user fetched successfully ")
+    return res.status(200).json(new ApiResponse(200, req.user, "Current user fetched successfully"))
 })
 
 const updateAccountDetails = asyncHandler(async(req, res) => {
     const {fullName, email} = req.body;
 
     if(!(fullName || email)) {
-        throw new ApiError(400, "All fileds are required")
+        throw new ApiError(400, "All fields are required")
     }
 
-    const user = User.findByIdAndUpdate(req.user?._id, {
+    const user = await User.findByIdAndUpdate(req.user?._id, {
         $set: {
             fullName, email
         }
@@ -258,6 +258,15 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
     return res.status(200).json(new ApiResponse(200, user, "Account details updated successfully"))
 })
 
+const getUserChannelProfile = asyncHandler(async(req, res) => {
+    const {username} = req.params;
+
+    if(!username?.trim()) {
+        throw new ApiError(400, "username is missing")
+    }
+
+})
+
 export {
     registerUser,
     loginUser,
@@ -265,5 +274,6 @@ export {
     refreshAccessToken,
     changeCurrentPassword,
     getCurrentUser,
-    updateAccountDetails
+    updateAccountDetails,
+    getUserChannelProfile
 }
